@@ -66,13 +66,32 @@ fun ActionButton(text: String, onClick: () -> Unit) {
 }
 
 @Composable
+fun LongButton(text: String, buttonColor: Color, onClick: () -> Unit) {
+    Button(
+        colors = ButtonDefaults.buttonColors(
+            containerColor = buttonColor
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        onClick = onClick
+    ) {
+        Text(
+            text = text,
+            color = Color.White
+        )
+    }
+}
+
+
+@Composable
 fun OptionButton(
     onClick: () -> Unit,
     icon: Painter,
     buttonColor: Color
 ) {
     OutlinedButton(
-        modifier= Modifier.size(50.dp),
+        modifier= Modifier.size(48.dp),
         shape = CircleShape,
         border= BorderStroke(0.dp, buttonColor),
         contentPadding = PaddingValues(0.dp),
@@ -84,7 +103,7 @@ fun OptionButton(
             contentDescription = "Regresar",
             tint = Color.White,
             modifier = Modifier
-                .size(35.dp)
+                .size(25.dp)
         )
     }
 }

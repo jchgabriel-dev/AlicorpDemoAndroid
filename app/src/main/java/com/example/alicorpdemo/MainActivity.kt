@@ -44,28 +44,31 @@ import com.example.alicorpdemo.ui.theme.AlicorpDemoTheme
 
            setContent {
                AlicorpDemoTheme {
+                   val context = LocalContext.current
                    val navController = rememberNavController()
 
                    NavHost(navController = navController, startDestination = "pisoList") {
                        composable("pisoList") {
-                           val context = LocalContext.current
                            PisoScreen(viewModel = pisoViewModel, navController = navController,  context = context)
                        }
+
+                       composable("crearPiso") {
+                           PisoCreateScreen(viewModel = pisoViewModel, navController = navController,  context = context)
+                       }
+
 
                        composable(
                            "detalleCamaras/{pisoId}",
                            arguments = listOf(navArgument("pisoId") { type = NavType.IntType })
                        ) { backStackEntry ->
-
                            val pisoId = backStackEntry.arguments?.getInt("pisoId") ?: 0
-                           CamaraScreen(pisoId = pisoId, viewModel = camaraViewModel, viewModelPiso = pisoViewModel, navController = navController)
+                           CamaraScreen(pisoId = pisoId, viewModel = camaraViewModel, viewModelPiso = pisoViewModel, navController = navController, context = context)
                        }
 
                        composable(
                            "crearCamara/{pisoId}",
                            arguments = listOf(navArgument("pisoId") { type = NavType.IntType })
                        ) { backStackEntry ->
-                           val context = LocalContext.current
                            val pisoId = backStackEntry.arguments?.getInt("pisoId") ?: 0
                            CamaraCreateScreen(pisoId = pisoId, viewModel = camaraViewModel, viewModelPiso = pisoViewModel, navController = navController,  context = context)
                        }
@@ -74,7 +77,6 @@ import com.example.alicorpdemo.ui.theme.AlicorpDemoTheme
                            "updateCamara/{camaraId}",
                            arguments = listOf(navArgument("camaraId") { type = NavType.IntType })
                        ) { backStackEntry ->
-                           val context = LocalContext.current
                            val camaraId = backStackEntry.arguments?.getInt("camaraId") ?: 0
                            CamaraUpdateScreen(camaraId = camaraId, viewModel = camaraViewModel, viewModelPiso = pisoViewModel, navController = navController,  context = context)
                        }
@@ -84,7 +86,6 @@ import com.example.alicorpdemo.ui.theme.AlicorpDemoTheme
                            "detalleInformes/{camaraId}",
                            arguments = listOf(navArgument("camaraId") { type = NavType.IntType })
                        ) { backStackEntry ->
-                           val context = LocalContext.current
                            val camaraId = backStackEntry.arguments?.getInt("camaraId") ?: 0
                            InformeScreen(camaraId = camaraId, viewModel = informeViewModel, viewModelCamara = camaraViewModel, navController = navController)
                        }
@@ -93,7 +94,6 @@ import com.example.alicorpdemo.ui.theme.AlicorpDemoTheme
                            "crearInforme/{camaraId}",
                            arguments = listOf(navArgument("camaraId") { type = NavType.IntType })
                        ) { backStackEntry ->
-                           val context = LocalContext.current
                            val camaraId = backStackEntry.arguments?.getInt("camaraId") ?: 0
                            InformeCreateScreen(camaraId = camaraId, viewModel = informeViewModel, viewModelCamara = camaraViewModel, navController = navController,  context = context)
                        }
@@ -102,21 +102,21 @@ import com.example.alicorpdemo.ui.theme.AlicorpDemoTheme
                            "updateInforme/{informeId}",
                            arguments = listOf(navArgument("informeId") { type = NavType.IntType })
                        ) { backStackEntry ->
-                           val context = LocalContext.current
                            val informeId = backStackEntry.arguments?.getInt("informeId") ?: 0
                            InformeUpdateScreen(informeId = informeId, viewModel = informeViewModel, viewModelCamara = camaraViewModel, navController = navController,  context = context)
                        }
 
-                   }
 
-                   navController.navigate("crearCamara/1")
+                   }
+                   navController.navigate("pisoList")
+
+
                }
            }
        }
    }
 
-
-@Composable
+   @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
         text = "Hello $name!",

@@ -1,9 +1,13 @@
 package com.example.alicorpdemo
 
 import PisoViewModel
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.graphics.PointF
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -23,108 +27,130 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberImagePainter
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import com.example.alicorpdemo.components.HeaderText
+import com.example.alicorpdemo.components.MainColumn
+import com.example.alicorpdemo.components.OptionButton
+import com.example.alicorpdemo.components.TextDetail
+import com.example.alicorpdemo.components.TextDialog
 import com.example.alicorpdemo.database.Camara
 import kotlin.math.pow
 
+import kotlinx.coroutines.launch
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoViewModel , navController: NavController) {
+fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoViewModel , navController: NavController, context: Context) {
+
+
     val camaras by viewModel.obtenerCamarasPorPiso(pisoId).observeAsState(emptyList())
     val piso by viewModelPiso.obtenerPisoPorId(pisoId).observeAsState()
 
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
+    var selectedCamara by remember { mutableStateOf<Camara?>(null) }
 
-    Column(modifier = Modifier.padding(0.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(0.dp)
-                .background(Color.Red)
-        ) {
-            piso?.let {
-                Text(
-                    text = "Piso - ${it.nombre}",
-                    color = Color.White,
-                    modifier = Modifier.padding(20.dp)
-                )
-            } ?: run {
-                Text(
-                    text = "Cargando piso...",
-                    color = Color.White,
-                    modifier = Modifier.padding(20.dp)
-                )
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        )
-        {
-            Button(
-                onClick = { navController.popBackStack() }, // Regresa a la pantalla anterior
-                modifier = Modifier.padding(top = 2.dp, start = 4.dp,),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                )
-            ) {
-                Text(
-                    text = "Volver",
-                    color = Color.White,
-                )
-            }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
-            Button(
-                onClick = {
-                    piso?.let {
-                        navController.navigate("crearCamara/${it.id}")
-                    } ?: run {
-                        Log.e("CamaraScreen", "El piso no está disponible")
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val intent = result.data
+            val qrCode = intent?.getStringExtra("SCAN_RESULT") ?: ""
+            if (qrCode.isNotEmpty()) {
+                viewModel.obtenerCamaraPorCodigo(qrCode, pisoId).observeForever { camara ->
+                    if (camara != null) {
+                        selectedCamara = camara
+                        showBottomSheet = true
+                    } else {
+                        Toast.makeText(context, "No se encontró dicho equipo en este piso", Toast.LENGTH_SHORT).show()
                     }
-                },
-                modifier = Modifier.padding(top = 2.dp, start = 4.dp,),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red
-                )
-            ) {
-                Text(
-                    text = "Agregar Camara",
-                    color = Color.White,
-                )
+                }
+
+            } else {
+                Toast.makeText(context, "No se escaneó ningún código válido", Toast.LENGTH_SHORT).show()
             }
-
         }
+    }
+
+    fun launchQRCodeScanner() {
+        val intent = Intent(context, com.journeyapps.barcodescanner.CaptureActivity::class.java)
+        launcher.launch(intent)
+    }
 
 
+
+    MainColumn() {
+        HeaderText(texto = piso?.nombre ?: "Piso no encontrado", navController = navController)
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .background(Color.Gray)
+                .background(Color.DarkGray)
                 .clipToBounds()
         ) {
+            Box(modifier = Modifier.padding(8.dp).zIndex(1f).align(Alignment.TopEnd)) {
+                Column(
+                    modifier = Modifier
+                        .background(Color(0x80FFFFFF), shape = RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(40.dp))
+                        .padding(vertical = 15.dp, horizontal = 5.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                )
+                {
+                    OptionButton(
+                        icon = painterResource(id = R.drawable.baseline_add_circle_24),
+                        buttonColor = Color.Red,
+                        onClick = {
+                            piso?.let {
+                                navController.navigate("crearCamara/${it.id}")
+                            } ?: run {
+                                Log.e("CamaraScreen", "El piso no está disponible")
+                            }
+                        },
+                    )
+
+                    OptionButton(
+                        icon = painterResource(id = R.drawable.baseline_youtube_searched_for_24),
+                        buttonColor = Color.DarkGray,
+                        onClick = {
+                            launchQRCodeScanner()
+                        }
+                    )
+                }
+
+            }
+
             piso?.let {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+
                         .pointerInput(Unit) {
                             detectTransformGestures { _, pan, _, _ ->
                                 offsetX += pan.x
@@ -149,7 +175,6 @@ fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoVie
                             .fillMaxSize()
                             .pointerInput(Unit) {
                                 detectTapGestures { tapOffset ->
-                                    // Detectar si se hizo clic cerca de un marcador
                                     camaras.forEach { camara ->
                                         val marcadorX = camara.latitud + offsetX
                                         val marcadorY = camara.longitud + offsetY
@@ -157,8 +182,9 @@ fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoVie
                                             (tapOffset.x - marcadorX).pow(2) + (tapOffset.y - marcadorY).pow(2)
                                         )
 
-                                        if (distancia <= 20f) { // Radio del círculo
-                                            navController.navigate("detalleInformes/${camara.id}")
+                                        if (distancia <= 80f) {
+                                            selectedCamara = camara
+                                            showBottomSheet = true
                                         }
                                     }
                                 }
@@ -168,25 +194,22 @@ fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoVie
                             val marcadorX = camara.latitud
                             val marcadorY = camara.longitud
 
-                            // Dibujar sombra
                             drawCircle(
-                                color = Color.Black.copy(alpha = 0.2f), // Sombra negra con transparencia
-                                radius = 30f, // Radio de la sombra un poco mayor que el círculo
+                                color = Color.Black.copy(alpha = 0.2f),
+                                radius = 30f,
                                 center = Offset(marcadorX + offsetX, marcadorY + offsetY)
                             )
 
-                            // Dibujar borde
                             drawCircle(
-                                color = Color.White, // Color del borde
-                                radius = 23f, // Radio del borde un poco mayor que el círculo rojo
+                                color = Color.White,
+                                radius = 23f,
                                 center = Offset(marcadorX + offsetX, marcadorY + offsetY),
-                                style = Stroke(width = 4f) // Grosor del borde
+                                style = Stroke(width = 4f)
                             )
 
-                            // Dibujar círculo relleno
                             drawCircle(
-                                color = Color.Red, // Color del relleno
-                                radius = 20f, // Radio del círculo
+                                color = Color.Red,
+                                radius = 20f,
                                 center = Offset(marcadorX + offsetX, marcadorY + offsetY)
                             )
                         }
@@ -200,10 +223,70 @@ fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoVie
                     modifier = Modifier.padding(20.dp)
                 )
             }
+
+
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        showBottomSheet = false
+                    },
+                    sheetState = sheetState,
+                    containerColor = Color.Red,
+                ) {
+                    selectedCamara?.let { camara ->
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.White)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.baseline_bookmark_24),
+                                            contentDescription = "Item",
+                                            tint = Color.Black,
+                                            modifier = Modifier
+                                                .size(25.dp)
+                                        )
+                                        TextDialog(text = "Detalles del equipo")
+
+
+                                    }
+
+                                    Spacer(modifier = Modifier.height(14.dp))
+
+                                    TextDetail(text = "Nombre: ${camara.nombre}")
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    TextDetail(text = "Descripcion: ${camara.descripcion}")
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
+
+                                OptionButton(
+                                    icon = painterResource(id = R.drawable.baseline_arrow_forward_ios_24),
+                                    buttonColor = Color.Red,
+                                    onClick = {
+                                        showBottomSheet = false
+                                        navController.navigate("detalleInformes/${camara.id}")
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+
         }
-
-
     }
+
 }
 
 

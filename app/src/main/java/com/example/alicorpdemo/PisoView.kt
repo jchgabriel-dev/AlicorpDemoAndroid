@@ -19,17 +19,26 @@ import androidx.compose.ui.unit.dp
 import com.example.alicorpdemo.database.Piso
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberImagePainter
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.alicorpdemo.components.HeaderText
+import com.example.alicorpdemo.components.InputCreate
+import com.example.alicorpdemo.components.LongButton
+import com.example.alicorpdemo.components.MainColumn
+import com.example.alicorpdemo.components.TextTitle
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -85,161 +94,50 @@ fun PisoScreen(viewModel: PisoViewModel, navController: NavController, context: 
         }
     }
 
-    Column(modifier = Modifier.padding(0.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(0.dp)
-                .background(Color.Red)
-        ) {
-            Text(
-                text = "Gestion de Pisos",
-                color = Color.White,
-                modifier = Modifier
-                    .padding(20.dp)
-            )
-        }
-
+    MainColumn() {
+        HeaderText(texto = "Gestion de pisos", navController = navController)
         Column(
             modifier = Modifier
                 .padding(8.dp)
         ) {
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = {
-                    nombre = it
-                    nombreError = it.isEmpty() // Actualiza el error cuando el campo cambia
-                },
-                label = { Text("Nombre") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = if (nombreError) Color.Red else Color.Black,
-                    unfocusedLabelColor = if (nombreError) Color.Red else Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                )
-            )
+            TextTitle( text = "Listado de Pisos", icon = painterResource(id = R.drawable.baseline_add_home_work_24),)
 
-            OutlinedTextField(
-                value = descripcion,
-                onValueChange = {
-                    descripcion = it
-                    descripcionError = it.isEmpty() // Actualiza el error cuando el campo cambia
-                },
-                label = { Text("Descripción") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = if (descripcionError) Color.Red else Color.Black,
-                    unfocusedLabelColor = if (descripcionError) Color.Red else Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                )
-            )
-
-            OutlinedTextField(
-                value = imagen?.toString() ?: "",
-                onValueChange = { },
-                label = { Text("Imagen URL (selecciona una imagen)") },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = false,
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = if (imagenError) Color.Red else Color.Black,
-                    disabledBorderColor = if (imagenError) Color.Red else Color.Black,
-                    disabledTextColor = if (imagenError) Color.Red else Color.Black,
-                    disabledLabelColor = if (imagenError) Color.Red else Color.Black,
-                )
-            )
-
-            Button(
-                onClick = { imagePickerLauncher.launch("image/*") },
-                modifier = Modifier.padding(top = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red,
-                )
-            ) {
-                Text("Seleccionar Imagen", color = Color.White)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            imagen?.let {
-                val archivo = File(it.path!!)
-                if (archivo.exists()) {
-                    Image(
-                        painter = rememberImagePainter(archivo),
-                        contentDescription = "Imagen seleccionada",
-                        modifier = Modifier.fillMaxWidth()
-                            .height(200.dp),
-                    )
-                } else {
-                    Text("No se pudo cargar la imagen.", color = Color.Red)
-                }
-            }
-
-            Button(
+            LongButton(
+                text = "Agregar piso",
+                buttonColor = Color.Black,
                 onClick = {
-                    if (nombre.isEmpty() || descripcion.isEmpty() || imagen == null) {
-                        // Si algún campo está vacío, mostramos error
-                        nombreError = nombre.isEmpty()
-                        descripcionError = descripcion.isEmpty()
-                        imagenError = imagen == null
-                    } else {
-                        // Si todos los campos están completos, agregamos el piso
-                        viewModel.agregarPiso(nombre, descripcion, imagen.toString()) // Pasa la URL de la imagen
-                        nombre = ""
-                        descripcion = ""
-                        imagen = null
-                    }
+                    navController.navigate("crearPiso")
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                )
-            ) {
-                Text(
-                    text = "Agregar Piso",
-                    color = Color.White,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
+            )
 
-        Text(
-            text = "Listado de Pisos",
-            color = Color.Black,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            style = TextStyle(textDecoration = TextDecoration.Underline),
-            modifier = Modifier.padding(20.dp),
-        )
+            Spacer(modifier = Modifier.height(8.dp))
 
+            if (pisos.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .height(330.dp)
+                        .fillMaxWidth()
+                        .background(Color.Gray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No hay pisos disponibles",
+                        color = Color.Black,
 
-
-        if (pisos.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .height(330.dp)
-                    .fillMaxWidth()
-                    .background(Color.Gray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No hay informes disponibles",
-                    color = Color.Black,
-
-                    )
-            }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(pisos) { piso ->
-                    PisoItem(piso = piso, navController = navController) // Asegúrate de pasar el navController aquí
+                        )
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(pisos) { piso ->
+                        PisoItem(piso = piso, navController = navController) // Asegúrate de pasar el navController aquí
+                    }
                 }
             }
+
         }
+
+
 
     }
 }
@@ -261,6 +159,17 @@ fun PisoItem(piso: Piso, navController: NavController) {
             fontWeight = FontWeight.Bold,
         )
         Text(text = "Descripción: ${piso.descripcion}")
-        Text(text = "Imagen URL: ${piso.imagen}")
+        Spacer(modifier = Modifier.height(8.dp))
+        piso.imagen?.let { imageUrl ->
+            Image(
+                painter = rememberImagePainter(data = imageUrl),
+                contentDescription = "Imagen de ${piso.nombre}",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } ?: Text(text = "No hay imagen disponible.", color = Color.Red)
     }
 }

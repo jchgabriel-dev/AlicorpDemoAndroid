@@ -26,13 +26,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -46,6 +39,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -55,17 +49,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.alicorpdemo.components.ActionButton
 import com.example.alicorpdemo.components.HeaderText
 import com.example.alicorpdemo.components.InputCreate
+import com.example.alicorpdemo.components.InputShow
 import com.example.alicorpdemo.components.MainColumn
 import com.example.alicorpdemo.components.OptionButton
 import com.example.alicorpdemo.components.SecondaryButton
@@ -89,15 +79,16 @@ fun CamaraCreateScreen(
     var marcador by remember { mutableStateOf<PointF?>(null) }
     var isDialogVisible by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
+
     var nombreError by remember { mutableStateOf(false) }
-    var codigoError by remember { mutableStateOf(false) }
     var descripcionError by remember { mutableStateOf(false) }
 
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
     var nombre by remember { mutableStateOf("") }
-    var codigo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
+    var codigo by remember { mutableStateOf("") }
+
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -122,17 +113,20 @@ fun CamaraCreateScreen(
 
 
     MainColumn() {
-        HeaderText(texto = piso?.nombre ?: "Piso no encontrado", navController = navController)
+        HeaderText(texto = "Registro de equipos", navController = navController)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+
             OptionButton(
-                icon = painterResource(id = R.drawable.baseline_add_a_photo_24),
+                icon = painterResource(id = R.drawable.baseline_add_to_photos_24),
                 buttonColor = Color.Red,
                 onClick = {
-                    if (marcador == null) {
+                    if (marcador == null || codigo.isEmpty()) {
                         showErrorDialog = true
                     } else {
                         isDialogVisible = true
@@ -142,21 +136,24 @@ fun CamaraCreateScreen(
 
             OptionButton(
                 icon = painterResource(id = R.drawable.baseline_add_a_photo_24),
-                buttonColor = Color.Gray,
+                buttonColor = Color.DarkGray,
                 onClick = {
                     launchQRCodeScanner()
                 }
             )
 
 
-
-
-            ActionButton(
-                text = "Escanear código",
-                onClick = {
-                    launchQRCodeScanner()
-                }
+            InputShow(
+                label = "Codigo",
+                value = codigo,
+                onValueChange = {
+                    codigo = it
+                },
             )
+
+
+
+
         }
 
         Box(
@@ -241,7 +238,7 @@ fun CamaraCreateScreen(
                 onDismissRequest = {
                     isDialogVisible = false
                 },
-                title = { TextDialog(text = "Datos de la camara") },
+                title = { TextDialog(text = "Datos del equipo") },
                 text = {
                     Column {
                         InputCreate(value = nombre,
@@ -251,15 +248,6 @@ fun CamaraCreateScreen(
                             },
                             label = "Nombre",
                             isError = nombreError
-                        )
-
-                        InputCreate(value = codigo,
-                            onValueChange = {
-                                codigo = it
-                                codigoError = it.isEmpty()
-                            },
-                            label = "Codigo",
-                            isError = codigoError
                         )
 
                         InputCreate(value = descripcion,
@@ -280,7 +268,6 @@ fun CamaraCreateScreen(
 
                             if (hasError) {
                                 nombreError = nombre.isEmpty()
-                                codigoError = codigo.isEmpty()
                                 descripcionError = descripcion.isEmpty()
                             } else {
                                 marcador?.let {
@@ -315,18 +302,32 @@ fun CamaraCreateScreen(
         }
 
         if (showErrorDialog) {
+            val messageError = mutableListOf<String>()
+
+            if (codigo.isEmpty())
+                messageError.add("Por favor, escanee el código")
+
+            if (marcador == null)
+                messageError.add("Por favor, selecciona un marcador primero")
+
             AlertDialog(
                 containerColor = Color.White,
                 onDismissRequest = { showErrorDialog = false },
                 title = { TextDialog(text = "Error") },
-                text = { Text(text = "Por favor, selecciona un marcador primero.", color = Color.Black) },
+                text = {
+                    // Combina los mensajes en un único texto separado por saltos de línea
+                    Text(
+                        text = messageError.joinToString(separator = "\n"),
+                        color = Color.Black
+                    )
+                },
                 confirmButton = {
                     SecondaryButton(
                         text = "Aceptar",
                         onClick = {
                             showErrorDialog = false
-                        },
-                        )
+                        }
+                    )
                 }
             )
         }

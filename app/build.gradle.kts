@@ -69,6 +69,8 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.0.0")
     implementation("com.google.zxing:core:3.4.1")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.0")
+    implementation("androidx.compose.material3:material3:1.0.0")
+    implementation("androidx.compose.ui:ui:1.5.0")
 
 }
