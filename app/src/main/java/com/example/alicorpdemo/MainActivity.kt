@@ -21,17 +21,24 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.alicorpdemo.database.AppDatabase
+import com.example.alicorpdemo.login.LoginScreen
+import com.example.alicorpdemo.login.SignupScreen
+import com.example.alicorpdemo.login.UsuarioViewModel
+import com.example.alicorpdemo.login.UsuarioViewModelFactory
 import com.example.alicorpdemo.ui.theme.AlicorpDemoTheme
 
    class MainActivity : ComponentActivity() {
        private lateinit var pisoViewModel: PisoViewModel
        private lateinit var camaraViewModel: CamaraViewModel
        private lateinit var informeViewModel: InformeViewModel
+       private lateinit var usuarioViewModel: UsuarioViewModel
 
        override fun onCreate(savedInstanceState: Bundle?) {
            super.onCreate(savedInstanceState)
            enableEdgeToEdge()
 
+           val usuarioDao = AppDatabase.getDatabase(applicationContext).usuarioDao()
+           usuarioViewModel = ViewModelProvider(this, UsuarioViewModelFactory(usuarioDao)).get(UsuarioViewModel::class.java)
 
            val pisoDao = AppDatabase.getDatabase(applicationContext).pisoDao()
            pisoViewModel = ViewModelProvider(this, PisoViewModelFactory(pisoDao)).get(PisoViewModel::class.java)
@@ -47,7 +54,16 @@ import com.example.alicorpdemo.ui.theme.AlicorpDemoTheme
                    val context = LocalContext.current
                    val navController = rememberNavController()
 
-                   NavHost(navController = navController, startDestination = "pisoList") {
+                   NavHost(navController = navController, startDestination = "login") {
+                       composable("login") {
+                           LoginScreen(viewModel = usuarioViewModel, navController = navController,  context = context)
+                       }
+
+                       composable("signup") {
+                           SignupScreen(viewModel = usuarioViewModel, navController = navController,  context = context)
+                       }
+
+
                        composable("pisoList") {
                            PisoScreen(viewModel = pisoViewModel, navController = navController,  context = context)
                        }
@@ -108,7 +124,6 @@ import com.example.alicorpdemo.ui.theme.AlicorpDemoTheme
 
 
                    }
-                   navController.navigate("pisoList")
 
 
                }

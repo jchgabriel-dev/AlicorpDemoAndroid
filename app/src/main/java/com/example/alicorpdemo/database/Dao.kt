@@ -62,3 +62,16 @@ interface InformeDao {
     @Query("SELECT * FROM Informe WHERE id = :informeId")
     fun obtenerInformePorId(informeId: Int): LiveData<Informe>
 }
+
+@Dao
+interface UsuarioDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun registrarUsuario(usuario: Usuario)
+
+    @Query("SELECT * FROM Usuario WHERE username = :username AND contrasena = :contrasena LIMIT 1")
+    fun login(username: String, contrasena: String): LiveData<Usuario>
+
+    @Query("SELECT * FROM Usuario WHERE username = :username LIMIT 1")
+    fun obtenerUsuarioPorUsername(username: String): LiveData<Usuario>
+}

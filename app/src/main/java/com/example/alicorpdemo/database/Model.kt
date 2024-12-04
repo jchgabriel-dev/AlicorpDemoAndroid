@@ -52,3 +52,12 @@ data class Informe(
     val autor: String,
     val camaraId: Int
 )
+
+
+@Entity
+data class Usuario(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val username: String,
+    val contrasena: String
+)

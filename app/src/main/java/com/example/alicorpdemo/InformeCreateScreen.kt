@@ -49,6 +49,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.example.alicorpdemo.components.ActionButton
+import com.example.alicorpdemo.components.HeaderText
+import com.example.alicorpdemo.components.InputCreate
+import com.example.alicorpdemo.components.InputText
+import com.example.alicorpdemo.components.LongButton
+import com.example.alicorpdemo.components.MainColumn
 import com.example.alicorpdemo.database.Camara
 import com.example.alicorpdemo.database.Informe
 import java.io.File
@@ -72,99 +78,59 @@ fun InformeCreateScreen(
 
     var autorError by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(0.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(0.dp)
-                .background(Color.Red)
-        ) {
-            Text(
-                text = "Gestion de Informes",
-                color = Color.White,
-                modifier = Modifier
-                    .padding(20.dp)
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                ),
-                onClick = {
-                    navController.popBackStack()
-                }
-
-            ) {
-                Text(text = "Regresar", color = Color.White,)
-            }
-
-
-        }
-
-
+    MainColumn() {
+        HeaderText(texto = "Registro de informes", navController = navController)
 
         Column(
             modifier = Modifier
                 .padding(8.dp)
         ) {
-            OutlinedTextField(
-                value = autor,
+
+            InputCreate(value = autor,
                 onValueChange = {
                     autor = it
-                    autorError = it.isEmpty() // Actualiza el error cuando el campo cambia
+                    autorError = it.isEmpty()
                 },
-                label = { Text("Autor") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = if (autorError) Color.Red else Color.Black,
-                    unfocusedLabelColor = if (autorError) Color.Red else Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                )
+                label = "Autor",
+                isError = autorError
             )
-
-
-
 
             OutlinedTextField(
                 value = fecha,
                 onValueChange = {
                     fecha = it
                     fechaError = it.isEmpty()
-                                },
+                },
                 label = { Text("Fecha") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    ,
+                ,
                 readOnly = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = if (fechaError) Color.Red else Color.Black,
                     unfocusedLabelColor = if (fechaError) Color.Red else Color.Black,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
+                    focusedLabelColor = if (fechaError) Color.Red else Color.Black,
+                    focusedBorderColor = if (fechaError) Color.Red else Color.Black,
                 )
             )
+            Spacer(modifier = Modifier.height(3.dp))
 
-            Button(
-                onClick = {
-                    datePickerVisible = true
-                },
-                modifier = Modifier.padding(top = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                Text(
+                ActionButton(
                     text = "Seleccionar Fecha",
-                    color = Color.White,
-                    textAlign = TextAlign.Center
+                    onClick = {
+                        datePickerVisible = true
+                    },
                 )
             }
+
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             if (datePickerVisible) {
                 val context = LocalContext.current
@@ -173,7 +139,7 @@ fun InformeCreateScreen(
                 DatePickerDialog(
                     context,
                     { _, year, month, dayOfMonth ->
-                        fecha = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year) // Formato de la fecha
+                        fecha = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
                         fechaError = false
                         datePickerVisible = false // Reinicia el estado
                     },
@@ -182,47 +148,25 @@ fun InformeCreateScreen(
                     calendar.get(Calendar.DAY_OF_MONTH)
                 ).apply {
                     setOnDismissListener {
-                        datePickerVisible = false // Asegura que se reinicie incluso si el usuario cierra el diálogo manualmente
+                        datePickerVisible = false
                     }
                 }.show()
             }
-
-            OutlinedTextField(
+            InputText(
                 value = descripcion,
                 onValueChange = { descripcion = it },
-                label = { Text("Descripcion") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp) // Ajusta la altura para un campo más grande
-                    .padding(vertical = 8.dp), // Agrega algo de espacio
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                ),
-                maxLines = 5, // Permite hasta 5 líneas de texto
+                label = "Descripcion"
             )
 
-            OutlinedTextField(
+            InputText(
                 value = observacion,
                 onValueChange = { observacion = it },
-                label = { Text("Observacion") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp) // Ajusta la altura para un campo más grande
-                    .padding(vertical = 8.dp), // Agrega algo de espacio
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                ),
-                maxLines = 5, // Permite hasta 5 líneas de texto
+                label = "Observaciones"
             )
-
-
-            Button(
+            Spacer(modifier = Modifier.height(6.dp))
+            LongButton(
+                text = "Agregar informe",
+                buttonColor = Color.Black,
                 onClick = {
                     if (autor.isEmpty() || fecha.isEmpty() ) {
                         autorError = autor.isEmpty()
@@ -242,20 +186,8 @@ fun InformeCreateScreen(
 
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                )
-            ) {
-                Text(
-                    text = "Agregar Informe",
-                    color = Color.White,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            }
+            )
+
         }
     }
 

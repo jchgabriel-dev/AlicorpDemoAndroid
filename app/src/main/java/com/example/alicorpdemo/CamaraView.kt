@@ -196,20 +196,20 @@ fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoVie
 
                             drawCircle(
                                 color = Color.Black.copy(alpha = 0.2f),
-                                radius = 30f,
+                                radius = 35f,
                                 center = Offset(marcadorX + offsetX, marcadorY + offsetY)
                             )
 
                             drawCircle(
-                                color = Color.White,
-                                radius = 23f,
+                                color = Color.Yellow,
+                                radius = 28f,
                                 center = Offset(marcadorX + offsetX, marcadorY + offsetY),
                                 style = Stroke(width = 4f)
                             )
 
                             drawCircle(
                                 color = Color.Red,
-                                radius = 20f,
+                                radius = 25f,
                                 center = Offset(marcadorX + offsetX, marcadorY + offsetY)
                             )
                         }

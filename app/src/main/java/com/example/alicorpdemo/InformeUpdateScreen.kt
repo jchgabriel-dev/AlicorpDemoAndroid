@@ -50,6 +50,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.example.alicorpdemo.components.ActionButton
+import com.example.alicorpdemo.components.HeaderText
+import com.example.alicorpdemo.components.InputCreate
+import com.example.alicorpdemo.components.InputText
+import com.example.alicorpdemo.components.LongButton
+import com.example.alicorpdemo.components.MainColumn
 import com.example.alicorpdemo.database.Camara
 import com.example.alicorpdemo.database.Informe
 import java.io.File
@@ -84,57 +90,21 @@ fun InformeUpdateScreen(
         if (observacion.isEmpty()) observacion = it.observacion
     }
 
-    Column(modifier = Modifier.padding(0.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(0.dp)
-                .background(Color.Red)
-        ) {
-            Text(
-                text = "Actualizar Informe",
-                color = Color.White,
-                modifier = Modifier
-                    .padding(20.dp)
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                ),
-                onClick = {
-                    navController.popBackStack()
-                }
-            ) {
-                Text(text = "Regresar", color = Color.White,)
-            }
-        }
+    MainColumn() {
+        HeaderText(texto = "Edicion de informes", navController = navController)
 
         Column(
             modifier = Modifier
                 .padding(8.dp)
         ) {
-            OutlinedTextField(
-                value = autor,
+
+            InputCreate(value = autor,
                 onValueChange = {
                     autor = it
-                    autorError = it.isEmpty() // Actualiza el error cuando el campo cambia
+                    autorError = it.isEmpty()
                 },
-                label = { Text("Autor") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = if (autorError) Color.Red else Color.Black,
-                    unfocusedLabelColor = if (autorError) Color.Red else Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                )
+                label = "Autor",
+                isError = autorError
             )
 
             OutlinedTextField(
@@ -145,29 +115,34 @@ fun InformeUpdateScreen(
                 },
                 label = { Text("Fecha") },
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                ,
                 readOnly = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = if (fechaError) Color.Red else Color.Black,
                     unfocusedLabelColor = if (fechaError) Color.Red else Color.Black,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
+                    focusedLabelColor = if (fechaError) Color.Red else Color.Black,
+                    focusedBorderColor = if (fechaError) Color.Red else Color.Black,
                 )
             )
+            Spacer(modifier = Modifier.height(3.dp))
 
-            Button(
-                onClick = {
-                    datePickerVisible = true
-                },
-                modifier = Modifier.padding(top = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                Text(
+                ActionButton(
                     text = "Seleccionar Fecha",
-                    color = Color.White,
-                    textAlign = TextAlign.Center
+                    onClick = {
+                        datePickerVisible = true
+                    },
                 )
             }
+
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             if (datePickerVisible) {
                 val context = LocalContext.current
@@ -178,7 +153,7 @@ fun InformeUpdateScreen(
                     { _, year, month, dayOfMonth ->
                         fecha = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
                         fechaError = false
-                        datePickerVisible = false
+                        datePickerVisible = false // Reinicia el estado
                     },
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
@@ -189,75 +164,46 @@ fun InformeUpdateScreen(
                     }
                 }.show()
             }
-
-            OutlinedTextField(
+            InputText(
                 value = descripcion,
                 onValueChange = { descripcion = it },
-                label = { Text("Descripcion") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp) // Ajusta la altura para un campo más grande
-                    .padding(vertical = 8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                ),
-                maxLines = 5,
+                label = "Descripcion"
             )
 
-            OutlinedTextField(
+            InputText(
                 value = observacion,
                 onValueChange = { observacion = it },
-                label = { Text("Observacion") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp) // Ajusta la altura para un campo más grande
-                    .padding(vertical = 8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                ),
-                maxLines = 5,
+                label = "Observaciones"
             )
-
-            Button(
+            Spacer(modifier = Modifier.height(6.dp))
+            LongButton(
+                text = "Actualizar informe",
+                buttonColor = Color.Black,
                 onClick = {
-                    if (autor.isEmpty() || fecha.isEmpty()) {
+                    if (autor.isEmpty() || fecha.isEmpty() ) {
                         autorError = autor.isEmpty()
                         fechaError = descripcion.isEmpty()
                     } else {
                         val updatedInforme = Informe(
-                            id = informeId, // Usamos el ID del informe existente
+                            id = informeId,
                             autor = autor,
                             fecha = fecha,
                             descripcion = descripcion,
                             observacion = observacion,
-                            camaraId = informe?.camaraId ?: 0 // Mantener el camaraId original
+                            camaraId = informe?.camaraId ?: 0
                         )
 
-                        viewModel.actualizarInforme(updatedInforme) // Llamar al método para actualizar el informe
+                        viewModel.actualizarInforme(updatedInforme)
                         navController.popBackStack()
+
+
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                )
-            ) {
-                Text(
-                    text = "Actualizar Informe",
-                    color = Color.White,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            }
+            )
+
         }
     }
+
+
 }
 

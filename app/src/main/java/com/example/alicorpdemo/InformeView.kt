@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -42,6 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.example.alicorpdemo.components.HeaderText
+import com.example.alicorpdemo.components.LongButton
+import com.example.alicorpdemo.components.MainColumn
+import com.example.alicorpdemo.components.OptionButton
+import com.example.alicorpdemo.components.TextTitle
+import com.example.alicorpdemo.components.TextTitleAlternative
 import com.example.alicorpdemo.database.Informe
 import com.example.alicorpdemo.database.Piso
 
@@ -53,124 +61,58 @@ fun InformeScreen(camaraId: Int, viewModel: InformeViewModel, viewModelCamara: C
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
 
-    Column(modifier = Modifier.padding(0.dp)) {
-        Box(
+    MainColumn() {
+        HeaderText(texto = camara?.nombre ?: "Equipo no encontrado", navController = navController)
+
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical =  0.dp , horizontal = 0.dp)
-                .background(Color.Red)
+                .padding(8.dp)
         ) {
-            camara?.let {
-                Text(
-                    text = "Camara - ${it.nombre}",
-                    color = Color.White,
-                    modifier = Modifier.padding(20.dp)
-                )
-            } ?: run {
-                Text(
-                    text = "Cargando piso...",
-                    color = Color.White,
-                    modifier = Modifier.padding(20.dp)
-                )
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical =  8.dp , horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        )
-        {
-            Button(
-                onClick = { navController.popBackStack() }, // Regresa a la pantalla anterior
-                modifier = Modifier.padding(top = 2.dp, start = 4.dp,),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                )
+            Row( horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "Volver",
-                    color = Color.White,
+
+                TextTitleAlternative( text = "Listado de informes", icon = painterResource(id = R.drawable.baseline_file_copy_24),)
+                OptionButton(
+                    icon = painterResource(id = R.drawable.baseline_build_24),
+                    buttonColor = Color.Red,
+                    onClick = { navController.navigate("updateCamara/${camara?.id}") },
                 )
             }
 
-            Button(
+            LongButton(
+                text = "Agregar informe",
+                buttonColor = Color.Black,
                 onClick = {
-                    camara?.let {
-                        navController.navigate("crearInforme/${it.id}")
-                    } ?: run {
-                        Log.e("CamaraScreen", "El piso no está disponible")
-                    }
+                    navController.navigate("crearInforme/${camara?.id}")
                 },
-                modifier = Modifier.padding(top = 2.dp, start = 4.dp,),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red
-                )
-            ) {
-                Text(
-                    text = "Agregar Informe",
-                    color = Color.White,
-                )
-            }
-
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        )
-        {
-            Text(
-                text = "Listado de Informes",
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                style = TextStyle(textDecoration = TextDecoration.Underline)
             )
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = { navController.navigate("updateCamara/${camara?.id}") },
-                modifier = Modifier.padding(top = 2.dp, start = 4.dp,),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                )
-            ) {
-                Text(
-                    text = "Camara",
-                    color = Color.White,
-                )
-            }
+            if (informes.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .height(330.dp)
+                        .fillMaxWidth()
+                        .background(Color.Gray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No hay informes disponibles",
+                        color = Color.Black,
 
-
-        }
-
-
-        if (informes.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .height(330.dp)
-                    .fillMaxWidth()
-                    .background(Color.Gray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No hay informes disponibles",
-                    color = Color.Black,
-
-                )
-            }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(informes) { informe ->
-                    InformeItem(informe = informe, navController = navController)
+                        )
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(informes) { informe ->
+                        InformeItem(informe = informe, navController = navController)
+                    }
                 }
             }
+
         }
-
-
     }
 }
 
@@ -180,7 +122,7 @@ fun InformeItem(informe: Informe, navController: NavController) {
     Column(
         modifier = Modifier
             .padding(8.dp)
-            .background(Color.LightGray)
+            .background(Color.DarkGray)
             .padding(16.dp)
             .fillMaxWidth()
             .clickable {
@@ -192,7 +134,8 @@ fun InformeItem(informe: Informe, navController: NavController) {
             text = "Fecha: ${informe.fecha}",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
+            color = Color.White
         )
-        Text(text = "Autor: ${informe.autor}")
+        Text(text = "Autor: ${informe.autor}", color = Color.White)
     }
 }

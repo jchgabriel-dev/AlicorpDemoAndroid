@@ -1,11 +1,13 @@
 package com.example.alicorpdemo.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,12 +20,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.systemuicontroller.SystemUiController
@@ -75,7 +80,31 @@ fun TextTitle(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .fillMaxWidth() // Ocupa todo el ancho disponible
+            .fillMaxWidth()
+            .padding(vertical = 10.dp, horizontal = 5.dp)
+    ) {
+        Icon(
+            painter = icon,
+            contentDescription = "Item",
+            tint = Color.Black,
+            modifier = Modifier.size(25.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        TextDialog(
+            text = text
+        )
+    }
+}
+
+@Composable
+fun TextTitleAlternative(
+    text: String,
+    icon: Painter
+) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
             .padding(vertical = 10.dp, horizontal = 5.dp)
     ) {
         Icon(
@@ -125,19 +154,79 @@ fun InputShow(
     onValueChange: (String) -> Unit,
     label: String,
 ) {
+    val hasText = value.isNotEmpty()
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
+        singleLine = true,
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(0.dp),
+            .padding(bottom = 4.dp)
+            .background(Color.Transparent),
         enabled = false,
         colors = OutlinedTextFieldDefaults.colors(
-            disabledContainerColor = Color.White,
+            disabledContainerColor = Color.DarkGray,
             disabledBorderColor = Color.Black,
-            disabledTextColor = Color.Black,
-            disabledLabelColor = Color.Black
+            disabledTextColor = Color.White,
+            disabledLabelColor = if (hasText) Color.Black else Color.White,
+
+        )
+
+
+    )
+}
+
+
+@Composable
+fun InputText(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        modifier = Modifier.fillMaxWidth().height(150.dp) ,
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedBorderColor =  Color.Black,
+            unfocusedLabelColor = Color.Black,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+
+            focusedLabelColor = Color.Black,
+            focusedBorderColor = Color.Black,
+            cursorColor = Color.Black
+        ),
+        maxLines = 5,
+    )
+}
+
+
+@Composable
+fun InputPassword(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isError: Boolean
+
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        modifier = Modifier.fillMaxWidth(),
+        visualTransformation = PasswordVisualTransformation(),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedBorderColor = if (isError) Color.Red else Color.Black,
+            unfocusedLabelColor = if (isError) Color.Red else Color.Black,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+
+            focusedLabelColor = if (isError) Color.Red else Color.Black,
+            focusedBorderColor = if (isError) Color.Red else Color.Black,
+            cursorColor = if (isError) Color.Red else Color.Black
         )
     )
 }

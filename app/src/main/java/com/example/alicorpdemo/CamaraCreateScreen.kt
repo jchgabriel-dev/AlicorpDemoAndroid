@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.PointF
 import android.net.Uri
 import android.util.Log
+import android.util.Size
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -41,15 +43,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.alicorpdemo.components.ActionButton
@@ -114,55 +121,57 @@ fun CamaraCreateScreen(
 
     MainColumn() {
         HeaderText(texto = "Registro de equipos", navController = navController)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-
-            OptionButton(
-                icon = painterResource(id = R.drawable.baseline_add_to_photos_24),
-                buttonColor = Color.Red,
-                onClick = {
-                    if (marcador == null || codigo.isEmpty()) {
-                        showErrorDialog = true
-                    } else {
-                        isDialogVisible = true
-                    }
-                }
-            )
-
-            OptionButton(
-                icon = painterResource(id = R.drawable.baseline_add_a_photo_24),
-                buttonColor = Color.DarkGray,
-                onClick = {
-                    launchQRCodeScanner()
-                }
-            )
-
-
-            InputShow(
-                label = "Codigo",
-                value = codigo,
-                onValueChange = {
-                    codigo = it
-                },
-            )
-
-
-
-
-        }
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .background(Color.Gray)
+                .background(Color.DarkGray)
                 .clipToBounds()
         ) {
+
+            Box(modifier = Modifier.padding(8.dp).zIndex(1f).align(Alignment.TopEnd)) {
+                Row(
+                    modifier = Modifier
+                        .background(Color(0x80FFFFFF), shape = RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(10.dp))
+                        .padding(vertical = 5.dp, horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+
+                    OptionButton(
+                        icon = painterResource(id = R.drawable.baseline_add_to_photos_24),
+                        buttonColor = Color.Red,
+                        onClick = {
+                            if (marcador == null || codigo.isEmpty()) {
+                                showErrorDialog = true
+                            } else {
+                                isDialogVisible = true
+                            }
+                        }
+                    )
+
+                    OptionButton(
+                        icon = painterResource(id = R.drawable.baseline_add_a_photo_24),
+                        buttonColor = Color.DarkGray,
+                        onClick = {
+                            launchQRCodeScanner()
+                        }
+                    )
+
+
+                    InputShow(
+                        label = "Codigo",
+                        value = codigo,
+                        onValueChange = {
+                            codigo = it
+                        },
+                    )
+                }
+            }
+
+
             piso?.let {
                 Box(
                     modifier = Modifier
@@ -197,14 +206,14 @@ fun CamaraCreateScreen(
                         Canvas(modifier = Modifier.fillMaxSize()) {
                             drawCircle(
                                 color = Color.Black.copy(alpha = 0.2f),
-                                radius = 30f,
+                                radius = 35f,
                                 center = Offset(
                                     position.x + offsetX,
                                     position.y + offsetY
                                 )                             )
                             drawCircle(
                                 color = Color.White,
-                                radius = 23f,
+                                radius = 28f,
                                 center = Offset(
                                     position.x + offsetX,
                                     position.y + offsetY
@@ -213,12 +222,16 @@ fun CamaraCreateScreen(
                             )
 
                             drawCircle(
-                                color = Color.Blue,
-                                radius = 20f,
+                                color = Color.Red,
+                                radius = 25f,
                                 center = Offset(
                                     position.x + offsetX,
                                     position.y + offsetY
-                                )                            )
+                                )
+                            )
+
+
+
                         }
                     }
                 }
