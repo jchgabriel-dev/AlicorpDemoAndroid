@@ -41,6 +41,11 @@ class CamaraViewModel(private val camaraDao: CamaraDao) : ViewModel() {
     fun obtenerCamaraPorCodigo(camaraCodigo: String, pisoId: Int): LiveData<Camara> {
         return camaraDao.obtenerCamaraPorCodigo(camaraCodigo, pisoId)
     }
+
+    fun buscarCamarasPorCodigo(codigo: String): LiveData<List<Camara>> {
+        return camaraDao.buscarCamarasPorCodigo(codigo)
+    }
+
 }
 
 class CamaraViewModelFactory(private val camaraDao: CamaraDao) : ViewModelProvider.Factory {

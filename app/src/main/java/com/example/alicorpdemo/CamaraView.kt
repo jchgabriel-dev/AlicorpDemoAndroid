@@ -46,12 +46,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.example.alicorpdemo.components.HeaderText
+import com.example.alicorpdemo.components.InputShow
 import com.example.alicorpdemo.components.MainColumn
 import com.example.alicorpdemo.components.OptionButton
+import com.example.alicorpdemo.components.SecondaryButton
 import com.example.alicorpdemo.components.TextDetail
+import com.example.alicorpdemo.components.TextDetailOne
 import com.example.alicorpdemo.components.TextDialog
 import com.example.alicorpdemo.database.Camara
 import kotlin.math.pow
@@ -63,6 +67,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoViewModel , navController: NavController, context: Context) {
 
+    var listaCamaras by remember { mutableStateOf(emptyList<Camara>()) }
+    var showModalCamaras by remember { mutableStateOf(false) }
 
     val camaras by viewModel.obtenerCamarasPorPiso(pisoId).observeAsState(emptyList())
     val piso by viewModelPiso.obtenerPisoPorId(pisoId).observeAsState()
@@ -70,6 +76,7 @@ fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoVie
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
     var selectedCamara by remember { mutableStateOf<Camara?>(null) }
+    var codigo by remember { mutableStateOf("") }
 
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
@@ -114,37 +121,78 @@ fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoVie
                 .background(Color.DarkGray)
                 .clipToBounds()
         ) {
-            Box(modifier = Modifier.padding(8.dp).zIndex(1f).align(Alignment.TopEnd)) {
-                Column(
-                    modifier = Modifier
-                        .background(Color(0x80FFFFFF), shape = RoundedCornerShape(16.dp))
-                        .clip(RoundedCornerShape(40.dp))
-                        .padding(vertical = 15.dp, horizontal = 5.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                )
-                {
-                    OptionButton(
-                        icon = painterResource(id = R.drawable.baseline_add_circle_24),
-                        buttonColor = Color.Red,
-                        onClick = {
-                            piso?.let {
-                                navController.navigate("crearCamara/${it.id}")
-                            } ?: run {
-                                Log.e("CamaraScreen", "El piso no está disponible")
-                            }
-                        },
-                    )
 
-                    OptionButton(
-                        icon = painterResource(id = R.drawable.baseline_youtube_searched_for_24),
-                        buttonColor = Color.DarkGray,
-                        onClick = {
-                            launchQRCodeScanner()
-                        }
+            Row(modifier = Modifier.zIndex(1f)) {
+                Box(modifier = Modifier.padding(8.dp).zIndex(1f).weight(1f)) {
+                    Row(
+                        modifier = Modifier
+                            .background(Color(0x80FFFFFF), shape = RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(10.dp))
+                            .padding(vertical = 5.dp, horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+
+                        OptionButton(
+                            icon = painterResource(id = R.drawable.baseline_youtube_searched_for_24),
+                            buttonColor = Color.Red,
+                            onClick = {
+
+                                if (codigo.isBlank()) {
+                                    Toast.makeText(context, "Por favor, ingrese el código", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    viewModel.buscarCamarasPorCodigo(codigo).observeForever { resultado ->
+                                        listaCamaras = resultado
+                                        showModalCamaras = true
+                                    }
+                                }
+                            }
+                        )
+                        InputShow(
+                            label = "Codigo",
+                            value = codigo,
+                            onValueChange = {
+                                codigo = it
+                            },
+                        )
+                    }
+                }
+
+                Box(modifier = Modifier.padding(8.dp).zIndex(1f)) {
+                    Column(
+                        modifier = Modifier
+                            .background(Color(0x80FFFFFF), shape = RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(40.dp))
+                            .padding(vertical = 15.dp, horizontal = 5.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     )
+                    {
+                        OptionButton(
+                            icon = painterResource(id = R.drawable.baseline_add_circle_24),
+                            buttonColor = Color.Red,
+                            onClick = {
+                                piso?.let {
+                                    navController.navigate("crearCamara/${it.id}")
+                                } ?: run {
+                                    Log.e("CamaraScreen", "El piso no está disponible")
+                                }
+                            },
+                        )
+
+                        OptionButton(
+                            icon = painterResource(id = R.drawable.baseline_add_a_photo_24),
+                            buttonColor = Color.DarkGray,
+                            onClick = {
+                                launchQRCodeScanner()
+                            }
+                        )
+
+                    }
+
                 }
 
             }
+
 
             piso?.let {
                 Box(
@@ -284,9 +332,71 @@ fun CamaraScreen(pisoId: Int, viewModel: CamaraViewModel, viewModelPiso: PisoVie
             }
 
 
+            if (showModalCamaras) {
+                CamaraModal(listaCamaras, navController) {
+                    showModalCamaras = false
+                }
+            }
+
+
         }
     }
 
 }
 
 
+@Composable
+fun CamaraModal(camaras: List<Camara>, navController: NavController, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .background(Color.White, shape = RoundedCornerShape(16.dp))
+                .padding(16.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextDialog(text = "Resultados")
+
+                if (camaras.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .height(100.dp)
+                            .fillMaxWidth()
+                            .background(Color.Gray),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "No hay resultados", color = Color.Black,)
+                    }
+                } else {
+                    camaras.forEach { camara ->
+
+                        Box(modifier = Modifier.background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))) {
+                            Column(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onDismiss()
+                                        navController.navigate("detalleInformes/${camara.id}")
+                                    }
+                            ) {
+                                TextDetailOne(text = "Nombre: ${camara.nombre}")
+                                Spacer(modifier = Modifier.height(4.dp))
+                                TextDetailOne(text = "Codigo: ${camara.codigo}")
+                            }
+                        }
+
+                    }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    SecondaryButton(
+                        text = "Cerrar",
+                        onClick = onDismiss
+                    )
+                }
+
+
+            }
+        }
+    }
+}

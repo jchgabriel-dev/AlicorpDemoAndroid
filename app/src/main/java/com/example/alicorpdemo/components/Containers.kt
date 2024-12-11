@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.systemuicontroller.SystemUiController
@@ -69,6 +70,19 @@ fun TextDetail(
     text: String
 ) {
     Text(text = text, color = Color.Black, fontSize = 18.sp)
+}
+
+@Composable
+fun TextDetailOne(
+    text: String
+) {
+    Text(
+        text = text,
+        color = Color.Black,
+        fontSize = 18.sp,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
 }
 
 @Composable
@@ -164,14 +178,19 @@ fun InputShow(
         modifier = Modifier
             .padding(bottom = 4.dp)
             .background(Color.Transparent),
-        enabled = false,
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledContainerColor = Color.DarkGray,
-            disabledBorderColor = Color.Black,
-            disabledTextColor = Color.White,
-            disabledLabelColor = if (hasText) Color.Black else Color.White,
 
-        )
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedContainerColor = Color.DarkGray,
+            unfocusedBorderColor = Color.Black,
+            unfocusedTextColor = Color.White,
+            unfocusedLabelColor = if (hasText) Color.Black else Color.White,
+
+            focusedContainerColor = Color.DarkGray,
+            focusedBorderColor = Color.Black,
+            focusedTextColor = Color.White,
+            focusedLabelColor =  Color.Black,
+
+            )
 
 
     )

@@ -42,6 +42,9 @@ interface CamaraDao {
     @Query("SELECT * FROM Camara WHERE codigo = :camaraCodigo AND pisoId = :pisoId LIMIT 1")
     fun obtenerCamaraPorCodigo(camaraCodigo: String, pisoId: Int): LiveData<Camara>
 
+    @Query("SELECT * FROM Camara WHERE codigo LIKE '%' || :codigo || '%'")
+    fun buscarCamarasPorCodigo(codigo: String): LiveData<List<Camara>>
+
 }
 
 
